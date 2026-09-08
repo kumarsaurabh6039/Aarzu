@@ -1,6 +1,6 @@
 // ⚠️ After deploying the backend on Render, replace this with your real URL.
 // Example: https://aarzu-api.onrender.com
-const API_BASE = "http://127.0.0.1:8000";
+const API_BASE ="https://aarzu-api.onrender.com";
 
 const messagesEl = document.getElementById("messages");
 const form = document.getElementById("chat-form");
