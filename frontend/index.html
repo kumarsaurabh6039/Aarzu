@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
   <title>Aarzu</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icon.svg" />
@@ -14,14 +14,27 @@
     <header>
       <span class="dot"></span>
       <h1>Aarzu</h1>
+      <button id="switch-user" type="button">👋 New person?</button>
     </header>
 
     <main id="messages"></main>
 
     <form id="chat-form">
-      <input id="chat-input" type="text" placeholder="Aarzu se baat karo..." autocomplete="off" />
+      <input id="chat-input" type="text" placeholder="Message Aarzu..." autocomplete="off" />
       <button type="submit">➤</button>
     </form>
+  </div>
+
+  <!-- First-time-on-this-device check, so Aarzu knows if this is Saurabh
+       without having to ask every single time. -->
+  <div id="onboard-overlay" class="hidden">
+    <div class="onboard-card">
+      <p>Hey! Is this Saurabh's device?</p>
+      <div class="onboard-actions">
+        <button id="onboard-yes" type="button">Yes, it's me</button>
+        <button id="onboard-no" type="button">No, someone else</button>
+      </div>
+    </div>
   </div>
 
   <script src="app.js"></script>

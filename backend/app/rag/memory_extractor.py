@@ -1,15 +1,12 @@
 import json
 import re
 
-from google import genai
+import google.generativeai as genai
 
 from app.config import GEMINI_API_KEY, CHAT_MODEL
 from app.rag.memory_writer import save_memory
 
-if not GEMINI_API_KEY:
-    raise RuntimeError("GEMINI_API_KEY is not configured")
-
-client = genai.Client(api_key=GEMINI_API_KEY)
+genai.configure(api_key=GEMINI_API_KEY)
 
 MEMORY_PROMPT = """You are a personal memory extraction system.
 
@@ -34,16 +31,11 @@ User message:
 
 
 def extract_memory(user_id: str, message: str):
-    response = client.models.generate_content(
-        model=CHAT_MODEL,
-        contents=MEMORY_PROMPT + message,
-    )
+    model = genai.GenerativeModel(CHAT_MODEL)
+    response = model.generate_content(MEMORY_PROMPT + message)
 
     text = response.text.strip()
-
-    # Remove markdown code fences if Gemini returns them
-    text = re.sub(r"^```json\s*", "", text, flags=re.IGNORECASE)
-    text = re.sub(r"\s*```$", "", text).strip()
+    text = re.sub(r"^```json|```$", "", text, flags=re.MULTILINE).strip()
 
     try:
         data = json.loads(text)
@@ -53,14 +45,9 @@ def extract_memory(user_id: str, message: str):
     if not data.get("should_save"):
         return None
 
-    memory = data.get("memory")
-
-    if not memory:
-        return None
-
     save_memory(
         user_id=user_id,
-        content=memory,
+        content=data["memory"],
         memory_type=data.get("memory_type", "general"),
         importance=data.get("importance", 5),
     )

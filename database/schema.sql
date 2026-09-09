@@ -42,15 +42,26 @@ create index if not exists memories_user_id_idx on memories(user_id);
 
 -- =========================================
 -- CONVERSATIONS
+-- speaker_name is null for the owner (Saurabh) and set to the
+-- guest's name (or "Unknown guest") for anyone else chatting.
 -- =========================================
 
 create table if not exists conversations (
     id uuid primary key default gen_random_uuid(),
     user_id uuid not null,
     title text,
+    speaker_name text,
+    is_owner boolean not null default true,
     created_at timestamptz default now(),
     updated_at timestamptz default now()
 );
+
+-- If you already ran this schema before, run these two lines once
+-- to add the new columns without losing existing data:
+-- alter table conversations add column if not exists speaker_name text;
+-- alter table conversations add column if not exists is_owner boolean not null default true;
+
+create index if not exists conversations_user_id_idx on conversations(user_id);
 
 -- =========================================
 -- MESSAGES
