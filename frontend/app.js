@@ -1,6 +1,7 @@
 // After deploying the backend on Render, replace this with your real URL.
 // Example: https://aarzu-api.onrender.com
 const API_BASE = "https://aarzu-api.onrender.com";
+
 const messagesEl = document.getElementById("messages");
 const form = document.getElementById("chat-form");
 const input = document.getElementById("chat-input");
@@ -8,6 +9,12 @@ const switchUserBtn = document.getElementById("switch-user");
 const onboardOverlay = document.getElementById("onboard-overlay");
 const onboardYes = document.getElementById("onboard-yes");
 const onboardNo = document.getElementById("onboard-no");
+
+// Fixed PIN required for owner (Saurabh) access. Anyone opening the app for
+// the first time and claiming to be Saurabh must enter this correctly, or
+// they're treated as a guest instead - so owner access is PIN-gated from
+// the very first screen, not just assumed from a button tap.
+const OWNER_PIN = "8521";
 
 // ---- Mobile viewport height fix ------------------------------------------
 // 100vh on phones includes space hidden behind the browser's address bar,
@@ -84,7 +91,13 @@ if (!state.onboarded) {
 }
 
 onboardYes.addEventListener("click", () => {
-  state = { onboarded: true, isOwner: true, visitorName: null, history: [] };
+  const entered = prompt("Enter Saurabh's PIN:");
+  if (entered !== null && entered.trim() === OWNER_PIN) {
+    state = { onboarded: true, isOwner: true, visitorName: null, history: [] };
+  } else {
+    if (entered !== null) alert("Wrong PIN - continuing as a guest instead.");
+    state = { onboarded: true, isOwner: false, visitorName: null, history: [] };
+  }
   saveState();
   onboardOverlay.classList.add("hidden");
   updateSwitchButtonLabel();
@@ -103,8 +116,14 @@ switchUserBtn.addEventListener("click", () => {
     if (!ok) return;
     state = { onboarded: true, isOwner: false, visitorName: null, history: [] };
   } else {
-    const ok = confirm("Switch back to Saurabh's chat?");
-    if (!ok) return;
+    // Guest -> owner. Requires Saurabh's PIN, so anyone just holding the
+    // phone can't claim to be him.
+    const entered = prompt("Enter the PIN to switch back to Saurabh's chat:");
+    if (entered === null) return;
+    if (entered.trim() !== OWNER_PIN) {
+      alert("Wrong PIN.");
+      return;
+    }
     state = { onboarded: true, isOwner: true, visitorName: null, history: [] };
   }
   saveState();
