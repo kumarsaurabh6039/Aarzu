@@ -6,20 +6,28 @@ services:
     rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.8
+
       - key: SUPABASE_URL
         sync: false
+
       - key: SUPABASE_SERVICE_KEY
         sync: false
+
       - key: GEMINI_API_KEY
         sync: false
+
       - key: DEFAULT_USER_ID
         sync: false
+
       - key: CHAT_MODEL
-        value: gemini-2.0-flash
+        value: gemini-3.6-flash
+
       - key: EMBEDDING_MODEL
-        value: models/text-embedding-004
+        value: gemini-embedding-001
+
       - key: FRONTEND_URL
         sync: false
