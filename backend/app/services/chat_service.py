@@ -102,29 +102,42 @@ CURRENT MESSAGE:
 """
 
     # Gemini new SDK
-    response = client.models.generate_content(
-        model=CHAT_MODEL,
-        contents=[
-            *(
-                [
-                    {
-                        "role": item["role"],
-                        "parts": item["parts"],
-                    }
-                    for item in _to_gemini_history(history)
-                ]
-            ),
-            {
-                "role": "user",
-                "parts": [{"text": prompt}],
-            },
-        ],
-        config={
-            "system_instruction": SYSTEM_PROMPT_TEXT,
-        },
-    )
+    # If Gemini/backend has a temporary technical issue,
+    # return a natural human-like message instead of crashing.
+    try:
 
-    reply_text = response.text
+        response = client.models.generate_content(
+            model=CHAT_MODEL,
+            contents=[
+                *(
+                    [
+                        {
+                            "role": item["role"],
+                            "parts": item["parts"],
+                        }
+                        for item in _to_gemini_history(history)
+                    ]
+                ),
+                {
+                    "role": "user",
+                    "parts": [{"text": prompt}],
+                },
+            ],
+            config={
+                "system_instruction": SYSTEM_PROMPT_TEXT,
+            },
+        )
+
+        reply_text = response.text
+
+    except Exception as e:
+
+        print(f"Gemini technical error: {e}")
+
+        return (
+            "Hey, something’s a little messed up on my side right now 😅 "
+            "Can we talk a little later? I’ll be back soon."
+        )
 
     # Log conversation
     # Never let logging failure break chat.
