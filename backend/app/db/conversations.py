@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from app.db.supabase import supabase
+from app.services.embedding_service import create_embedding
 
 # We keep ONE open conversation per "identity" (owner, or a given guest
 # name, or a single bucket for unnamed guests) so a whole chat thread
@@ -39,14 +40,30 @@ def get_or_create_conversation(user_id: str, speaker_name: Optional[str], is_own
     return created.data[0]["id"]
 
 
-def log_message(conversation_id: str, role: str, content: str) -> None:
-    supabase.table("messages").insert(
-        {
-            "conversation_id": conversation_id,
-            "role": role,
-            "content": content,
-        }
-    ).execute()
+def log_message(conversation_id: str, role: str, content: str, is_owner: bool = True) -> None:
+    """Save a message.
+
+    Only a GUEST's own messages (role == "user" and is_owner == False) get
+    an embedding, since that's the only thing search_guest_messages() ever
+    needs to find later. This keeps Saurabh's own messages and every
+    assistant reply out of the guest-search vector index, and avoids
+    burning embedding calls where they'd never be used.
+    """
+    payload = {
+        "conversation_id": conversation_id,
+        "role": role,
+        "content": content,
+    }
+
+    if role == "user" and not is_owner:
+        try:
+            payload["embedding"] = create_embedding(content)
+        except Exception as e:
+            # A failed embedding should never stop the message from
+            # being saved - it just won't be semantically searchable.
+            print(f"Guest message embedding error: {e}")
+
+    supabase.table("messages").insert(payload).execute()
 
     supabase.table("conversations").update(
         {"updated_at": datetime.now(timezone.utc).isoformat()}

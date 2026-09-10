@@ -6,22 +6,42 @@
   <title>Aarzu</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icon.svg" />
-  <meta name="theme-color" content="#12121a" />
+  <meta name="theme-color" content="#0d0d16" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div id="app">
     <header>
-      <span class="dot"></span>
-      <h1>Aarzu</h1>
-      <button id="switch-user" type="button">👋 New person?</button>
+      <div class="brand">
+        <span class="avatar-ring"><span class="dot"></span></span>
+        <div class="brand-text">
+          <h1>Aarzu</h1>
+          <span id="status-line" class="status-line">online</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="voice-toggle" type="button" class="icon-btn" title="Toggle voice replies" aria-pressed="false">
+          <svg class="icon icon-speaker-on" viewBox="0 0 24 24" fill="none"><path d="M4 9v6h4l5 5V4L8 9H4Z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M19 6a9 9 0 0 1 0 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <svg class="icon icon-speaker-off" viewBox="0 0 24 24" fill="none"><path d="M4 9v6h4l5 5V4L8 9H4Z" fill="currentColor"/><path d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+        <button id="voice-call-btn" type="button" class="icon-btn call-icon-btn" title="Start voice conversation">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 5c0 8.284 6.716 15 15 15h1a1 1 0 0 0 1-1v-2.5a1 1 0 0 0-.8-.98l-3.2-.64a1 1 0 0 0-1 .27l-1.1 1.1a11.6 11.6 0 0 1-5.15-5.15l1.1-1.1a1 1 0 0 0 .27-1l-.64-3.2A1 1 0 0 0 8.5 5H6a1 1 0 0 0-1 1Z" fill="currentColor"/></svg>
+        </button>
+        <button id="switch-user" type="button" class="pill-btn">👋 New person?</button>
+      </div>
     </header>
 
     <main id="messages"></main>
 
     <form id="chat-form">
+      <button id="mic-btn" type="button" class="mic-btn" title="Speak your message">
+        <span class="mic-pulse"></span>
+        <svg viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="12" rx="3" fill="currentColor"/><path d="M5 11a7 7 0 0 0 14 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 18v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
       <input id="chat-input" type="text" placeholder="Message Aarzu..." autocomplete="off" />
-      <button type="submit">➤</button>
+      <button type="submit" class="send-btn">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 12L20 4L14 20L11 13L4 12Z" fill="currentColor"/></svg>
+      </button>
     </form>
   </div>
 
@@ -29,10 +49,35 @@
        without having to ask every single time. -->
   <div id="onboard-overlay" class="hidden">
     <div class="onboard-card">
+      <span class="avatar-ring big"><span class="dot"></span></span>
       <p>Hey! Is this Saurabh's device?</p>
       <div class="onboard-actions">
-        <button id="onboard-yes" type="button">Yes, it's me</button>
-        <button id="onboard-no" type="button">No, someone else</button>
+        <button id="onboard-yes" type="button" class="primary-btn">Yes, it's me</button>
+        <button id="onboard-no" type="button" class="secondary-btn">No, someone else</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hands-free voice conversation mode (ChatGPT-style): full screen,
+       Aarzu listens, replies out loud, then listens again automatically. -->
+  <div id="voice-call-overlay" class="hidden">
+    <div class="call-inner">
+      <div id="voice-orb" class="voice-orb listening">
+        <span class="orb-ring r3"></span>
+        <span class="orb-ring r2"></span>
+        <span class="orb-ring r1"></span>
+        <span class="orb-core"></span>
+      </div>
+      <p id="voice-call-status" class="call-status">Listening...</p>
+      <p id="voice-call-transcript" class="call-transcript"></p>
+
+      <div class="call-controls">
+        <button id="voice-call-mute" type="button" class="call-side-btn" title="Mute mic">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="12" rx="3" fill="currentColor"/><path d="M5 11a7 7 0 0 0 14 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 18v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+        <button id="voice-call-end" type="button" class="end-call-btn" title="End voice chat">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 5c0 8.284 6.716 15 15 15h1a1 1 0 0 0 1-1v-2.5a1 1 0 0 0-.8-.98l-3.2-.64a1 1 0 0 0-1 .27l-1.1 1.1a11.6 11.6 0 0 1-5.15-5.15l1.1-1.1a1 1 0 0 0 .27-1l-.64-3.2A1 1 0 0 0 8.5 5H6a1 1 0 0 0-1 1Z" fill="currentColor"/><path d="M3 3l18 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        </button>
       </div>
     </div>
   </div>

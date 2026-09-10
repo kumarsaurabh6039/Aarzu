@@ -117,3 +117,54 @@ $$;
 -- =========================================
 
 insert into profiles (name) values ('Saurabh') returning id;
+
+-- =========================================
+-- GUEST MESSAGE SEMANTIC SEARCH
+-- Lets Saurabh ask things like "Rahul ne kya bola tha?"
+-- and get a real semantic match, not just recency.
+-- Safe to re-run: only adds things if missing.
+-- =========================================
+
+alter table messages
+add column if not exists embedding vector(768);
+
+create index if not exists messages_embedding_idx
+on messages
+using ivfflat (embedding vector_cosine_ops)
+with (lists = 100);
+
+create or replace function match_guest_messages(
+    query_embedding vector(768),
+    match_user_id uuid,
+    match_threshold float default 0.55,
+    match_count int default 8
+)
+returns table (
+    id uuid,
+    conversation_id uuid,
+    speaker_name text,
+    content text,
+    created_at timestamptz,
+    similarity float
+)
+language sql
+stable
+as $$
+    select
+        m.id,
+        m.conversation_id,
+        c.speaker_name,
+        m.content,
+        m.created_at,
+        1 - (m.embedding <=> query_embedding) as similarity
+    from messages m
+    join conversations c
+        on c.id = m.conversation_id
+    where c.user_id = match_user_id
+      and c.is_owner = false
+      and m.role = 'user'
+      and m.embedding is not null
+      and 1 - (m.embedding <=> query_embedding) >= match_threshold
+    order by m.embedding <=> query_embedding
+    limit match_count;
+$$;
