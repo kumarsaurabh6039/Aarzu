@@ -48,6 +48,16 @@ EMBEDDING_MODEL = os.getenv(
 
 
 # =========================
+# Owner access
+# =========================
+
+# Anyone whose request carries this exact key in the
+# X-Aarzu-Owner-Key header is treated as the owner (Saurabh).
+# The client-sent "is_owner" flag is NEVER trusted directly.
+OWNER_ACCESS_KEY = os.getenv("OWNER_ACCESS_KEY")
+
+
+# =========================
 # Application
 # =========================
 
